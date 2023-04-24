@@ -267,8 +267,8 @@ fig.update_layout(
     # hovermode='x unified',
     hoverlabel=dict(font=dict(size=16)),
     font=dict(size=14),
-    width=1000,
-    height=620
+    width=1000/2,
+    height=620/2
                   )
 
 
