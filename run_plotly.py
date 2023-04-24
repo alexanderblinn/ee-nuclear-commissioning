@@ -100,7 +100,7 @@ _log_values = np.log10(data["Leistung, Netto in MW"])
 _log_values_norm = (_log_values - _log_values.min()) / (_log_values.max() - _log_values.min())
 
 # Scale the normalized values to the desired range.
-data["size"] = 10 + _log_values_norm * (50 - 10)
+data["size"] = 5 + _log_values_norm * (30 - 5)
 
 # data["size"].sort_values().reset_index(drop=True).plot(marker="o")
 
@@ -256,20 +256,7 @@ fig.add_trace(
 
 # %%
 
-fig.update_layout(
-    title="Entwicklung der Atomkraftwerke in Europa seit 1990:<br>Inbetriebnahme und Stilllegung von Reaktoren",
-    xaxis_title="Jahr der Inbetriebnahme bzw. der Abschaltung",
-    yaxis_title="derzeitiges Betriebsalter bzw. Alter bei Abschaltung",
-    xaxis=dict(showgrid=True, gridwidth=1, gridcolor='rgba(128, 128, 128, 0.1)'),
-    yaxis=dict(showgrid=True, gridwidth=1, gridcolor='rgba(128, 128, 128, 0.1)'),
-    plot_bgcolor='rgba(0, 0, 0, 0)',
-    paper_bgcolor='rgba(0, 0, 0, 0)',
-    # hovermode='x unified',
-    hoverlabel=dict(font=dict(size=16)),
-    font=dict(size=14),
-    width=1000/2,
-    height=620/2
-                  )
+
 
 
 # %%
@@ -309,7 +296,7 @@ fig.add_annotation(
     xanchor="left",  # Anchor point for x (left, center, or right)
     yanchor="middle",  # Anchor point for y (top, middle, or bottom)
     showarrow=False,
-    font=dict(size=14, color="black"),
+    # font=dict(size=12, color="black"),
     align="left"
 )
 
@@ -376,6 +363,25 @@ fig.add_annotation(
 
 # fig.update_layout(sliders=sliders)
 
+
+fig.update_layout(
+    title="Entwicklung der Atomkraftwerke in Europa seit 1990:<br>Inbetriebnahme und Stilllegung von Reaktoren",
+    xaxis_title="Jahr der Inbetriebnahme bzw. der Abschaltung",
+    yaxis_title="derzeitiges Betriebsalter bzw. Alter bei Abschaltung",
+    xaxis=dict(showgrid=True, gridwidth=1, gridcolor='rgba(128, 128, 128, 0.1)'),
+    yaxis=dict(showgrid=True, gridwidth=1, gridcolor='rgba(128, 128, 128, 0.1)'),
+    plot_bgcolor='rgba(0, 0, 0, 0)',
+    paper_bgcolor='rgba(0, 0, 0, 0)',
+    # hovermode='x unified',
+    hoverlabel=dict(font=dict(size=16)),
+    font=dict(family="Roboto", color="black", size=12), # Update this line to set the global font size
+    width=1000,
+    height=580,
+    legend=dict(
+        # font=dict(color="black"),
+        tracegroupgap=5, # Set the desired padding between legend entries
+    ),
+)
 
 
 #%%
