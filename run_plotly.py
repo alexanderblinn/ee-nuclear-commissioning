@@ -266,7 +266,9 @@ fig.update_layout(
     paper_bgcolor='rgba(0, 0, 0, 0)',
     # hovermode='x unified',
     hoverlabel=dict(font=dict(size=16)),
-    font=dict(size=14)
+    font=dict(size=14),
+    width=1200,
+    height=745
                   )
 
 
