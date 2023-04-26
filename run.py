@@ -1,240 +1,344 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Apr 20 16:18:48 2023
-
-@author: Alexander Blinn
+Created on Fri Apr 21 21:16:19 2023
 """
-
 from datetime import datetime
+import locale
+import math
 import os
 
-from matplotlib.lines import Line2D
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
+import numpy as np
+from numpy.typing import ArrayLike
+import plotly.graph_objects as go
+
+locale.setlocale(locale.LC_TIME, "us_US.UTF-8")
+
+# Constants
+YEAR_START = 1990
+YEAR_END = 2023
+
+# Define a dictionary of colors for each country
+COUNTRY_COLORS = {
+    "Belarus": "#0072b1",
+    "Belgium": "#e6a000",
+    "Bulgaria": "#009e73",
+    "Czech Republic": "#c4022b",
+    "Finland": "#9300d3",
+    "France": "#000000",
+    "Germany": "#d45e00",
+    "Italy": "#2e4053",
+    "Lithuania": "#FA8072",
+    "Netherlands": "#9e9e00",
+    "Romania": "#a65959",
+    "Slovakia": "#36648B",
+    "Spain": "#c0c0c0",
+    "Sweden": "#2ca02c",
+    "Switzerland": "#a172de",
+    "Ukraine": "#800080",
+    "United Kingdom": "#ff0000"
+}
 
 
-# %%
-
-YEAR = 1990
-
-# %%
-
-from matplotlib.colors import LinearSegmentedColormap
-
-# Define a list of colors
-colors = [
-    (0.000, 0.000, 0.000),  # black
-    (0.000, 0.447, 0.698),  # blue
-    (0.902, 0.624, 0.000),  # orange
-    (0.000, 0.620, 0.451),  # green
-    (0.835, 0.369, 0.000),  # red
-    (0.580, 0.000, 0.827),  # purple
-    (0.980, 0.741, 0.000),  # yellow
-    (0.361, 0.361, 0.361),  # gray
-    (0.902, 0.196, 0.157),  # dark red
-    (0.620, 0.620, 0.000),  # olive
-    (0.000, 0.737, 0.831),  # turquoise
-    (0.902, 0.510, 0.000),  # dark orange
-    (0.420, 0.420, 0.420),  # dark gray
-    (0.173, 0.627, 0.173),  # dark green
-    (0.631, 0.447, 0.871),  # violet
-    (1.000, 0.600, 0.000),  # bright orange
-    (0.000, 0.502, 0.502),  # cyan
-    (0.753, 0.753, 0.753),  # light gray
-    (0.769, 0.008, 0.165),  # pink
-    (0.294, 0.000, 0.510),  # dark purple
-    (0.502, 0.000, 0.502),  # magenta
-    (0.000, 0.000, 1.000),  # pure blue
-    (1.000, 0.000, 0.000),  # pure red
-    (0.000, 1.000, 0.000),  # pure green
-]
-
-# Create the colormap
-cmap = LinearSegmentedColormap.from_list('my_colormap', colors, N=len(colors))
-
-
-# %%
-
-df = pd.read_excel("nuclear_power_plants.xlsx")
-
-# Convert the "Land" column to a categorical column
-df["Land_Kategorie"] = pd.Categorical(df["Land"])
-
-# Create a color dictionary for each category code
-unique_categories = df["Land_Kategorie"].cat.codes.unique()
-colors = cmap(np.linspace(0, 1, len(unique_categories)))
-color_dict = {category_code: color for category_code, color in zip(unique_categories, colors)}
-
-# Map category codes to corresponding colors
-df["Farbe_Kategorie"] = df["Land_Kategorie"].cat.codes.map(color_dict)
-
-
-
-# df["Jahr_Baubeginn"] = df["Baubeginn"].apply(
-#     lambda x: x.year if isinstance(x, datetime) else None
-#     )
-
-df["Jahr_Inbetriebnahme"] = df["Kommerzieller Betrieb (geplant)"].apply(
-    lambda x: x.year if isinstance(x, datetime) else None
-    )
-
-df["Jahr_Abschaltung"] = df["Abschaltung (geplant)"].apply(
-    lambda x: x.year if isinstance(x, datetime) else None
-    )
-
-# df["Bauzeit"] = df["Jahr_Inbetriebnahme"] - df["Jahr_Baubeginn"]
-
-def calculate_operational_time(row):
+# Some helper functions.
+def cal_operational_time(row):
+    """Calculate the operational time."""
     if row["Status"] == "In Betrieb":
-        return (datetime.now() - row["Kommerzieller Betrieb (geplant)"]).total_seconds() / 86400 / 365.25
-    else:
-        try:
-            return (row["Abschaltung (geplant)"] - row["Kommerzieller Betrieb (geplant)"]).total_seconds() / 86400 / 365.25
-        except:
-            return None
+        return (
+            datetime(2023, 4, 25) - row["Kommerzieller Betrieb"]
+            ).total_seconds() / 86400 / 365.25
+    if row["Status"] == "Stillgelegt":
+        return (
+            row["Abschaltung"] - row["Kommerzieller Betrieb"]
+            ).total_seconds() / 86400 / 365.25
 
-df["Betriebszeit"] = df.apply(calculate_operational_time, axis=1)
 
-on = df.loc[
-    (df["Status"] == "In Betrieb") & (df["Jahr_Inbetriebnahme"] >= YEAR), :
+def read_data(file_path: str) -> None:
+    """Read the excel data file and preprocesses it."""
+    return pd.read_excel(
+        file_path,
+        converters={
+            "Baubeginn": pd.to_datetime,
+            "erste Netzsynchronisation": pd.to_datetime,
+            "Kommerzieller Betrieb": pd.to_datetime,
+            "Abschaltung": pd.to_datetime,
+            "Bau/Projekt eingestellt": pd.to_datetime
+            }
+        )
+
+
+def process_data(df: pd.DataFrame) -> pd.DataFrame:
+    """Compute additional values."""
+    df["Bauzeit"] = (df["Kommerzieller Betrieb"] - df["Baubeginn"]).apply(
+        lambda x: x.total_seconds()) / 86400 / 365.25
+    df["Betriebszeit"] = df.apply(cal_operational_time, axis=1)
+    return df
+
+
+def select_data(df: pd.DataFrame, start: int, end: int) -> pd.DataFrame:
+    """Select data within start and end year."""
+    return df.loc[
+        (df["Status"] == "In Betrieb")
+        &
+        (df["Kommerzieller Betrieb"] >= datetime(YEAR_START, 1, 1))
+        &
+        (df["Kommerzieller Betrieb"] <= datetime(YEAR_END, 12, 31))
+        |
+        (df["Abschaltung"] >= datetime(YEAR_START, 1, 1))
+        &
+        (df["Abschaltung"] <= datetime(YEAR_END, 12, 31)), :].copy()
+
+
+def calc_bubble_size(array: ArrayLike) -> ArrayLike:
+    """Calculate the size of the bubbles."""
+    array_log = np.log10(array)
+    return (array_log - array_log.min()) / (array_log.max() - array_log.min())
+
+
+# File path
+FILE_NAME = "nuclear_power_plants.xlsx"
+FILE_PATH = os.path.join(os.path.dirname(__file__), "data", FILE_NAME)
+
+# Read and preprocess the data
+df = read_data(FILE_PATH)
+df = process_data(df)
+
+# Select data within start and end year
+data = select_data(df, YEAR_START, YEAR_END)
+
+# Add color code for every country
+data["color"] = data["Land"].map(COUNTRY_COLORS)
+
+# Calculate and scale the size of the bubbles
+data["size"] = 5 + calc_bubble_size(data["Leistung, Netto in MW"]) * (25 - 5)
+
+# Create a Plotly Figure
+fig = go.Figure()
+
+# Add horizontal line
+fig.add_trace(
+    go.Scatter(
+        x=[datetime(YEAR_START, 1, 1), datetime(YEAR_END, 12, 31)],
+        y=[0, 0],
+        mode="lines",
+        line=dict(color="black", width=1),
+        showlegend=False,
+        stackgroup="below"
+        )
+    )
+
+# Create a list of unique countries
+countries = data["Land"].unique()
+
+# Iterate through the countries, creating separate traces for each.
+for country in countries:
+
+    country_data = data.loc[
+        (data["Status"] == "In Betrieb") & (data["Land"] == country)
         ]
 
-off = df.loc[df["Jahr_Abschaltung"] >= YEAR, :]
+    if not country_data.empty:
 
-# %%
+        x1 = country_data["Kommerzieller Betrieb"]
+        y1 = country_data["Betriebszeit"]
+        s1 = country_data["size"]
+        c1 = country_data["color"]
 
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), 'config'))
-plt.style.use(os.path.join(ROOT, 'mplstyle-ibt'))
+        # Land
+        t1 = country_data["Land"]
+        t1 += "<br>"
+        # Name und Block
+        t1 += country_data["Name"]
+        t1 += ", Unit "
+        t1 += country_data["Block"].apply(str)
+        t1 += "<br>"
+        # Inbetriebnahme
+        t1 += "Commissioning: "
+        t1 += country_data["Kommerzieller Betrieb"].apply(lambda x: x.strftime("%B %Y"))
+        t1 += "<br>"
+        # Alter
+        t1 += "Current Age: "
+        t1 += country_data["Betriebszeit"].round(1).apply(str)
+        t1 += " Jahre"
+        t1 += "<br>"
+        # Leistung
+        t1 += "Net Capacity: "
+        t1 += country_data["Leistung, Netto in MW"].apply(str)
+        t1 += " MW"
 
-# Create the plot
-fig, ax = plt.subplots()
+        fig.add_trace(
+            go.Scatter(
+                x=x1,
+                y=y1,
+                mode="markers",
+                marker=dict(size=s1,
+                            color=c1,
+                            colorscale="Viridis",
+                            showscale=False),
+                text=t1,
+                hovertemplate="%{text}<extra></extra>",
+                name=country,
+                legendgroup=country,
+                showlegend=False
+            )
+        )
 
-# Create the bar plot
-# bars = ax.bar(mpg['Year'], mpg['Average MPG'], color=cmap(norm(mpg['Average MPG'].values)))
-ax.scatter(on["Kommerzieller Betrieb (geplant)"], on["Betriebszeit"],
-           color=on["Farbe_Kategorie"],
-           alpha=0.7,
-           s=200 * on["Leistung, Netto in MW"] / on["Leistung, Netto in MW"].max()
-           )
+    country_data = data.loc[
+        (data["Status"] == "Stillgelegt") & (data["Land"] == country)
+        ]
 
-# Plot the line through the two points
-# ax.plot(
-#         [
-#             on["Kommerzieller Betrieb (geplant)"].min(),
-#             on["Kommerzieller Betrieb (geplant)"].max()
-#             ],
-#         [
-#             on["Betriebszeit"].max(),
-#             on["Betriebszeit"].min()
-#             ], color="k", linestyle="--", linewidth=0.5)
+    if not country_data.empty:
 
-ax.scatter(off["Abschaltung (geplant)"], -off["Betriebszeit"],
-           color=off["Farbe_Kategorie"],
-           alpha=0.7,
-           s=200 * off["Leistung, Netto in MW"] / off["Leistung, Netto in MW"].max()
-           )
+        x2 = country_data["Abschaltung"]
+        y2 = country_data["Betriebszeit"]
+        s2 = country_data["size"]
+        c2 = country_data["color"]
 
-#%%
+        # Land
+        t2 = country_data["Land"]
+        t2 += "<br>"
+        # Name und Block
+        t2 += country_data["Name"]
+        t2 += ", Unit "
+        t2 += country_data["Block"].apply(str)
+        t2 += "<br>"
+        # Inbetriebnahme
+        t2 += "Decommissioning: "
+        t2 += country_data["Abschaltung"].apply(lambda x: x.strftime("%B %Y"))
+        t2 += "<br>"
+        # Alter
+        t2 += "Age at Decommissioning: "
+        t2 += country_data["Betriebszeit"].round(1).apply(str)
+        t2 += " Years"
+        t2 += "<br>"
+        # Leistung
+        t2 += "Net Capacity: "
+        t2 += country_data["Leistung, Netto in MW"].apply(str)
+        t2 += " MW"
+
+        fig.add_trace(
+            go.Scatter(
+                x=x2,
+                y=-y2,
+                mode="markers",
+                marker=dict(size=s2,
+                            color=c2,
+                            colorscale="Viridis",
+                            showscale=False),
+                text=t2,
+                hovertemplate="%{text}<extra></extra>",
+                name=country,
+                legendgroup=country,
+                showlegend=False,
+            )
+        )
+
+# Custom legend
+for country, color in COUNTRY_COLORS.items():
+    fig.add_trace(
+        go.Scatter(
+            x=[None, None],
+            y=[None, None],
+            mode="markers",
+            marker=dict(size=12, color=color),
+            name=country,
+            legendgroup=country,
+            showlegend=True,
+            hoverinfo="none"
+        )
+    )
+
 # Compute the regression line
-x = [date.toordinal() for date in off["Abschaltung (geplant)"]]
-y = -off["Betriebszeit"]
-regress_coeffs = np.polyfit(x, y, deg=1)
+x_values = [date.toordinal() for date in data.loc[data["Status"] == "Stillgelegt", "Abschaltung"]]
+y_values = data.loc[data["Status"] == "Stillgelegt", "Betriebszeit"]
+regress_coeffs = np.polyfit(x_values, -y_values, deg=1)
 
 # Plot the regression line
-regress_x = np.array([min(x), max(x)])
+regress_x = np.array([min(x_values), max(x_values)])
 regress_y = np.polyval(regress_coeffs, regress_x)
-ax.plot([datetime.fromordinal(d) for d in regress_x], regress_y,
-        color="k", linestyle="--", linewidth=1)
 
-#%%
+# Add regression line for in-operation reactors
+fig.add_trace(
+    go.Scatter(
+        x=[datetime.fromordinal(d) for d in regress_x],
+        y=regress_y,
+        mode="lines",
+        line=dict(color="black", dash="dash", width=2),
+        name="Regressionslinie",
+        showlegend=False
+        )
+    )
 
-# Add the average line
-# ax.axhline(y=-off["Betriebszeit"].mean(), linestyle="--", color="k", linewidth=1)
-ax.axhline(y=0, linestyle='-', color='black', zorder=0)
+# Determine the axis limits
+x_min = datetime(YEAR_START - 1, 1, 1)
+x_max = datetime(YEAR_END + 1, 12, 31)
+y_min = -math.ceil(data.loc[data["Status"] == "Stillgelegt", "Betriebszeit"].max() / 10) * 10
+y_max = math.ceil(data.loc[data["Status"] == "In Betrieb", "Betriebszeit"].max() / 10) * 10
 
-# Add the highlight box
-ymin, ymax = ax.get_ylim()
-y_rel_0 = (0 - ymin) / (ymax - ymin)
-ax.axvspan(on["Kommerzieller Betrieb (geplant)"].sort_values().iloc[len(on["Kommerzieller Betrieb (geplant)"]) -3], datetime.now(), alpha=0.3, ymin=y_rel_0, ymax=1, color='lightgray', zorder=0)
+# Apply the fixed axis ranges
+fig.update_xaxes(range=[x_min, x_max])
+fig.update_yaxes(range=[y_min, y_max])
 
-# Set title and axis labels
-ax.set_title("Entwicklung der Atomkraftwerke in Europa seit 1990:\nInbetriebnahme und Stilllegung von Reaktoren", loc="left", fontsize=16)
-ax.set_xlabel("Jahr der Inbetriebnahme bzw. der Abschaltung")
-ax.set_ylabel("derzeitiges Betriebsalter bzw. Alter bei Abschaltung")
-
-# Customize the x-axis ticks
-# ax.xaxis.set_ticks(np.arange(mpg['Year'].min(), mpg['Year'].max() + 1, 1))
-
-# Add annotations
-msg = "Die Stromerzeugung aus Kernenergie verliert in Europa zunehmend\n"
-msg += "an Bedeutung. Seit 1990 ist der Anteil der Kernenergie am \n"
-msg += "elektrischen Verbrauch sowohl auf europäischer als auch globaler\n"
-msg += "Ebene im langfristigen Trend rückläufig. Innerhalb der letzten\n"
-msg += "15 Jahre wurden lediglich drei neue Reaktoren in Europa errichtet,\n"
-msg += "während zwischen 1990 und 2023 insgesamt 23 Reaktoren gebaut und\n"
-msg += "90 stillgelegt wurden. Stand April 2023 sind in Europa 128 Reaktoren\n"
-msg += "aktiv, deren durchschnittliches Alter mehr als 36 Jahre beträgt, und\n"
-msg += "somit das globale durchschnittliche Alter (rund 27 Jahre) für die\n"
-msg += "Stilllegung von Kernreaktoren signifikant überschreitet."
-
-ax.annotate(msg,
-            xy=(0.56, 0.97), xycoords="axes fraction",
-            fontsize=6.5, horizontalalignment="left", verticalalignment="top")
-
-ax.annotate(
-    "durchschnittliches Alter bei\nAbschaltung deutlich gestiegen",
-    xy=(0.83, 0.14), xytext=(0.7, 0.3), xycoords="axes fraction",
-    arrowprops=dict(facecolor="black", shrink=0.01, width=0.1, headwidth=7),
-    bbox=dict(facecolor="white", edgecolor="black", boxstyle="round,pad=0.3"),
-    fontsize=10, horizontalalignment="left", verticalalignment="bottom")
-
-ax.annotate("Erstellt mit frei verfügbaren Daten\nPunktgröße gibt die Nettoleistung an\n$\copyright$ AB (2023)",
-            xy=(1.02, 1.14), xycoords='axes fraction', fontsize=8, fontstyle='italic', color='#a6aeba',
-            horizontalalignment="right", verticalalignment="top")
+fig.add_annotation(
+    text="Commissioning<br>Decommissioning",
+    x=datetime(YEAR_START, 1, 1),
+    y=0,
+    xref="x",
+    yref="y",
+    xanchor="left",  # Anchor point for x (left, center, or right)
+    yanchor="middle",  # Anchor point for y (top, middle, or bottom)
+    showarrow=False,
+    align="left"
+)
 
 
-ax.annotate(
-    "Olkiluoto (Finnland),\nZubau Block 3, \n17 Jahre Bauzeit",
-    xy=(0.95, 0.55), xytext=(0.87, 0.52), xycoords="axes fraction",
-    arrowprops=dict(facecolor="black", shrink=0, width=0, headwidth=0),
-    bbox=dict(facecolor="white", edgecolor="None", boxstyle="round,pad=0.3"),
-    fontsize=7, horizontalalignment="left", verticalalignment="top")
-
-ax.annotate(
-    "Belarus baut ersten Reaktorblock,\n10 Jahre Bauzeit,\nzweiter Block für 2023 geplant",
-    xy=(0.891, 0.6), xytext=(0.66, 0.63), xycoords="axes fraction",
-    arrowprops=dict(facecolor="black", shrink=0, width=0, headwidth=0),
-    bbox=dict(facecolor="white", edgecolor="None", boxstyle="round,pad=0.3"),
-    fontsize=7, horizontalalignment="left", verticalalignment="top")
-
-ax.annotate("Inbetriebnahme", xy=(0.01, 0.595), xycoords="axes fraction", fontsize=7, horizontalalignment="left", verticalalignment="bottom")
-ax.annotate("Abschaltung", xy=(0.01, 0.54), xycoords="axes fraction", fontsize=7, horizontalalignment="left", verticalalignment="bottom")
-
-
-# %%
-
-# Get the unique countries in the 'on' and 'off' data subsets
-unique_on_countries = on["Land_Kategorie"].unique()
-unique_off_countries = off["Land_Kategorie"].unique()
-unique_on_off_countries = np.unique(np.concatenate((unique_on_countries, unique_off_countries)))
-
-# Create legend proxies for each unique country in the 'on' and 'off' data subsets
-legend_elements = [
-    Line2D([0], [0], marker="o", color="w", label=country, markerfacecolor=color_dict[df["Land_Kategorie"].cat.categories.get_loc(country)], markersize=8)
-    for country in unique_on_off_countries
-]
-
-# Add the legend to the plot
-legend = ax.legend(handles=legend_elements, loc="lower center", ncol=8, fontsize=8, bbox_to_anchor=(0.5, -0.35))
-legend.get_frame().set_linewidth(0.0)
-legend._legend_box.align = "left"  # Change alignment of the legend items
+fig.add_annotation(
+    go.layout.Annotation(
+        text="The average age of nuclear reactors<br>at the time of decommissioning has<br>significantly increased.",
+        xref="x",
+        yref="y",
+        x=datetime(2018, 6, 1),
+        y=-40,
+        font=dict(size=12, color="black"),
+        bordercolor="black",
+        borderwidth=1,
+        bgcolor="white",
+        opacity=0.8,
+        align="center",
+        showarrow=True,
+        arrowhead=2,
+        arrowsize=1,
+        arrowwidth=2,
+        arrowcolor="black",
+        xanchor="center",  # x-anchor for the arrow
+        yanchor="bottom",  # y-anchor for the arrow
+        axref="x",
+        ayref="y",
+        ax=datetime(2020, 1, 1),  # x-offset for the arrow
+        ay=-20  # y-offset for the arrow
+    )
+)
 
 
-# %%
+fig.update_layout(
+    title="Evolution of Nuclear Power Plants in Europe since 1990:<br>Commissioning and Decommissioning of Reactors",
+    xaxis_title="Year of Commissioning or Decommissioning",
+    yaxis_title="Current Operational Age or Age at Decommissioning",
+    xaxis=dict(showgrid=True, gridwidth=1, gridcolor="rgba(128, 128, 128, 0.1)"),
+    yaxis=dict(showgrid=True, gridwidth=1, gridcolor="rgba(128, 128, 128, 0.1)"),
+    plot_bgcolor="rgba(0, 0, 0, 0)",
+    paper_bgcolor="rgba(0, 0, 0, 0)",
+    # hovermode="x unified",
+    hoverlabel=dict(font=dict(size=12)),
+    font=dict(family="Roboto", color="black", size=12),  # global font settings
+    width=997,
+    height=580,
+    legend=dict(tracegroupgap=4),
+)
 
-# %% plot output and saving
 
-# plt.savefig('nuc_eu.png', bbox_inches='tight')
+# Save the plot as an HTML file
+fig.write_html("index.html")
 
-plt.show()
+# Display the plot
+fig.show()
