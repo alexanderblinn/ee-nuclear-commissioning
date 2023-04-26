@@ -77,6 +77,8 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
 
 def select_data(df: pd.DataFrame, start: int, end: int) -> pd.DataFrame:
     """Select data within start and end year."""
+    # Drop reactors that never operated.
+    df = df[df["Status"].isin(["In Betrieb", "Stillgelegt"])].dropna(subset=["Betriebszeit"])
     return df.loc[
         (df["Status"] == "In Betrieb")
         &
@@ -161,6 +163,11 @@ for country in countries:
         t1 += country_data["Betriebszeit"].round(1).apply(str)
         t1 += " Jahre"
         t1 += "<br>"
+        # Bauzeit
+        t1 += "Construction Time: "
+        t1 += country_data["Bauzeit"].round(1).apply(str)
+        t1 += " Years"
+        t1 += "<br>"
         # Leistung
         t1 += "Net Capacity: "
         t1 += country_data["Leistung, Netto in MW"].apply(str)
@@ -209,6 +216,11 @@ for country in countries:
         # Alter
         t2 += "Age at Decommissioning: "
         t2 += country_data["Betriebszeit"].round(1).apply(str)
+        t2 += " Years"
+        t2 += "<br>"
+        # Bauzeit
+        t2 += "Construction Time: "
+        t2 += country_data["Bauzeit"].round(1).apply(str)
         t2 += " Years"
         t2 += "<br>"
         # Leistung
