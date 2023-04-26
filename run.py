@@ -161,7 +161,7 @@ for country in countries:
         # Alter
         t1 += "Current Age: "
         t1 += country_data["Betriebszeit"].round(1).apply(str)
-        t1 += " Jahre"
+        t1 += " Years"
         t1 += "<br>"
         # Bauzeit
         t1 += "Construction Time: "
