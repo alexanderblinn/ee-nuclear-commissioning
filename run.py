@@ -133,38 +133,39 @@ fig.add_trace(
     )
 
 # Add rectangle
-year_rec = 2007
-num_up = data.loc[data["Kommerzieller Betrieb"] >= datetime(year_rec, 1, 1), :].shape[0]
-num_down = data.loc[data["Abschaltung"] >= datetime(year_rec, 1, 1), :].shape[0]
+start = datetime(2008, 7, 1)
+num_up = data.loc[data["Kommerzieller Betrieb"] >= start, :].shape[0]
+num_down = data.loc[data["Abschaltung"] >= start, :].shape[0]
 
-msg = """
-Over the course of the last 15 years, the<br>
-European nuclear energy landscape underwent a<br>
-significant transformation. During the years,<br>
-a mere four new reactors commenced operation,<br>
-while a striking number of 42 reactors were<br>
-decommissioned across the continent.<br>
-Meanwhile, the average age of decommissioned<br>
-reactors has surpassed the global average of<br>
-27 years, with a continuing upward trend.<br>
+nums = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four"}
+
+msg = f"""
+Over the course of the last 15 years, the European<br>
+nuclear energy landscape underwent a significant<br>
+transformation. During these years, a mere {nums[num_up]} new<br>
+reactors commenced operation, while a striking<br>
+number of {num_down} reactors were decommissioned across<br>
+the continent. Meanwhile, the average age of<br>
+decommissioned reactors has surpassed the global<br>
+average of 27 years, with a continuing upward trend.
 """
 
 fig.add_vrect(
-    x0=datetime(2007, 1, 1),
+    x0=start,
     x1=datetime(YEAR_END, 12, 31),
     annotation_text=msg,
     annotation_position="top left",
     annotation_align="left",
     annotation={
-        "font": {"size": 11}
+        "font": {"size": 10}
         },
     fillcolor="black",
-    opacity=0.1,
+    opacity=0.05,
     line_width=0
     )
 
 fig.add_vline(
-    x=datetime(2007, 1, 1),
+    x=start,
     line_width=1, line_dash="dash", line_color="black"
     )
 
@@ -457,7 +458,7 @@ fig.update_yaxes(range=[y_min, y_max])
 
 
 fig.add_annotation(
-    text=f"Commissioning{14*'<br>'}Decommissioning",
+    text=f"Commissioning{10*'<br>'}Decommissioning",
     x=datetime(YEAR_START+1, 1, 1),
     y=0,
     xref="x",
@@ -474,9 +475,9 @@ fig.add_annotation(
         text="The average age of nuclear reactors<br>at the time of decommissioning has<br>significantly increased.",
         xref="x",
         yref="y",
-        x=datetime(2018, 6, 1),
-        y=-40,
-        font=dict(size=12, color="black"),
+        x=datetime(2017, 1, 1),  # x-pos of arrow
+        y=-38,                   # y-pos of arrow
+        font=dict(size=11),
         bordercolor="black",
         borderwidth=1,
         bgcolor="white",
@@ -491,10 +492,25 @@ fig.add_annotation(
         yanchor="bottom",  # y-anchor for the arrow
         axref="x",
         ayref="y",
-        ax=datetime(2020, 1, 1),  # x-offset for the arrow
-        ay=-20  # y-offset for the arrow
+        ax=datetime(2016, 6, 1),  # x-pos of text box
+        ay=-20                    # y-pos of text box
     )
 )
+
+
+#  'Arial, sans-serif'
+#  'Balto, sans-serif'
+#  'Times New Roman, Times, serif' # ok
+#  'Droid Sans, sans-serif'
+#  'Old Standard TT, serif'
+# 'Raleway, sans-serif'
+#  'Courier New, monospace'
+#  'Gravitas One, cursive'  # ok
+#  'Droid Serif, serif'  # okkkk
+#  'Raleway, sans-serif'
+#  'PT Sans Narrow, sans-serif'
+#  'Open Sans, sans-serif'
+
 
 
 oldest_year = min(
@@ -513,10 +529,33 @@ fig.update_layout(
     paper_bgcolor="rgba(0, 0, 0, 0)",
     # hovermode="x unified",
     hoverlabel=dict(font=dict(size=12)),
-    font=dict(family="Times New Roman", color="black", size=12),  # global font settings
+    font=dict(family="Droid Serif, serif", color="black", size=12),  # global font settings
     width=997,
     height=580,
-    legend=dict(tracegroupgap=.5),
+
+    # Legend is on the bottom.
+    legend=dict(
+        orientation="h",
+        yanchor="top",
+        y=-0.2,
+        xanchor="center",
+        x=0.5,
+        traceorder="normal",
+        tracegroupgap=20,
+        font=dict(
+            size=10,
+        ),
+        itemwidth=60
+    ),
+
+    # Legend is on the right
+    # legend=dict(
+
+    #     tracegroupgap=0.5,
+    #     font=dict(
+    #         size=10
+    #     )
+    # )
 )
 
 
