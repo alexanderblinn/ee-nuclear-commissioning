@@ -132,43 +132,6 @@ fig.add_trace(
         )
     )
 
-# Add rectangle
-start = datetime(2008, 7, 1)
-num_up = data.loc[data["Kommerzieller Betrieb"] >= start, :].shape[0]
-num_down = data.loc[data["Abschaltung"] >= start, :].shape[0]
-
-nums = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four"}
-
-msg = f"""
-Over the course of the last 15 years, the European<br>
-nuclear energy landscape underwent a significant<br>
-transformation. During these years, a mere {nums[num_up]} new<br>
-reactors commenced operation, while a striking<br>
-number of {num_down} reactors were decommissioned across<br>
-the continent. Meanwhile, the average age of<br>
-decommissioned reactors has surpassed the global<br>
-average of 27 years, with a continuing upward trend.
-"""
-
-fig.add_vrect(
-    x0=start,
-    x1=datetime(YEAR_END, 12, 31),
-    annotation_text=msg,
-    annotation_position="top left",
-    annotation_align="left",
-    annotation={
-        "font": {"size": 10}
-        },
-    fillcolor="black",
-    opacity=0.05,
-    line_width=0
-    )
-
-fig.add_vline(
-    x=start,
-    line_width=1, line_dash="dash", line_color="black"
-    )
-
 # %%
 
 # Define nuclear catastrophes.
@@ -434,6 +397,7 @@ regress_coeffs = np.polyfit(x_values, -y_values, deg=1)
 regress_x = np.array([min(x_values), max(x_values)])
 regress_y = np.polyval(regress_coeffs, regress_x)
 
+
 # Add regression line for in-operation reactors
 fig.add_trace(
     go.Scatter(
@@ -497,6 +461,51 @@ fig.add_annotation(
     )
 )
 
+# %%
+
+
+# Add rectangle
+start = datetime(2008, 7, 1)
+num_up = data.loc[data["Kommerzieller Betrieb"] >= start, :].shape[0]
+num_down = data.loc[data["Abschaltung"] >= start, :].shape[0]
+
+nums = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four"}
+
+msg = f"""
+Over the course of the last 15 years, the European<br>
+nuclear energy landscape underwent a significant<br>
+transformation. During these years, a mere {nums[num_up]} new<br>
+reactors commenced operation, while a striking<br>
+number of {num_down} reactors were decommissioned across<br>
+the continent. Meanwhile, the average age of<br>
+decommissioned reactors has surpassed the global<br>
+average of 27 years, with a continuing upward trend.
+"""
+
+fig.add_vrect(
+    x0=start,
+    x1=datetime(YEAR_END, 12, 31),
+    annotation_text=msg,
+    annotation_position="top left",
+    annotation_align="left",
+    annotation={
+        "font": {"size": 10}
+        },
+    fillcolor="black",
+    opacity=0.05,
+    line_width=0
+    )
+
+fig.add_vline(
+    x=start,
+    line_width=1, line_dash="dash", line_color="black"
+    )
+
+
+
+
+# %%
+
 
 #  'Arial, sans-serif'
 #  'Balto, sans-serif'
@@ -519,6 +528,7 @@ oldest_year = min(
     )
 
 add_txt = f" since {YEAR_START}" if YEAR_START > oldest_year else ""
+
 fig.update_layout(
     title=f"Evolution of Nuclear Power Plants in Europe{add_txt}:<br>Commissioning and Decommissioning of Reactors",
     xaxis_title="Year of Commissioning or Decommissioning",
@@ -558,43 +568,7 @@ fig.update_layout(
     # )
 )
 
-
 # %%
-
-# # Add a slider
-# slider_steps = []
-# for i in range(YEAR_START, YEAR_END+1):
-#     step = dict(
-#         method="restyle",
-#         args=[
-#             {"x": [
-#                 data.loc[(data["Status"]=="In Betrieb") & (data["Land"]==country) & (data["Kommerzieller Betrieb"] >= datetime(i, 1, 1)) & (data["Kommerzieller Betrieb"] <= datetime(YEAR_END, 12, 31)), "Kommerzieller Betrieb"]
-#                 if country in countries else None
-#                 for country in countries
-#             ] + [
-#                 data.loc[(data["Status"]=="Stillgelegt") & (data["Land"]==country) & (data["Abschaltung"] >= datetime(i, 1, 1)) & (data["Abschaltung"] <= datetime(YEAR_END, 12, 31)), "Abschaltung"]
-#                 if country in countries else None
-#                 for country in countries
-#             ]}
-#         ],
-#         label=str(i),
-#     )
-#     slider_steps.append(step)
-# sliders = [dict(
-#     active=0,
-#     currentvalue={"prefix": "Year: "},
-#     pad={"t": 50},
-#     steps=slider_steps
-# )]
-# fig.update_layout(sliders=sliders)
-
-
-
-
-# %%
-
-
-
 
 # Save the plot as an HTML file
 fig.write_html("index.html")
