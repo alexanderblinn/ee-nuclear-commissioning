@@ -447,8 +447,8 @@ fig.add_trace(
     )
 
 # Determine the axis limits
-x_min = datetime(YEAR_START - 1, 1, 1)
-x_max = datetime(YEAR_END + 1, 12, 31)
+x_min = datetime(YEAR_START, 1, 1)
+x_max = datetime(YEAR_END, 12, 31)
 y_min = -math.ceil(data.loc[data["Status"] == "Stillgelegt", "Betriebszeit"].max() / 10) * 10
 y_max = math.ceil(data.loc[data["Status"] == "In Betrieb", "Betriebszeit"].max() / 10) * 10
 
@@ -503,7 +503,7 @@ fig.add_annotation(
 #  'Times New Roman, Times, serif' # ok
 #  'Droid Sans, sans-serif'
 #  'Old Standard TT, serif'
-# 'Raleway, sans-serif'
+#  'Raleway, sans-serif'
 #  'Courier New, monospace'
 #  'Gravitas One, cursive'  # ok
 #  'Droid Serif, serif'  # okkkk
