@@ -434,72 +434,72 @@ fig.add_annotation(
 )
 
 
-fig.add_annotation(
-    go.layout.Annotation(
-        text="The average age of nuclear reactors<br>at the time of decommissioning has<br>significantly increased.",
-        xref="x",
-        yref="y",
-        x=datetime(2017, 1, 1),  # x-pos of arrow
-        y=-38,                   # y-pos of arrow
-        font=dict(size=11),
-        bordercolor="black",
-        borderwidth=1,
-        bgcolor="white",
-        opacity=0.8,
-        align="center",
-        showarrow=True,
-        arrowhead=2,
-        arrowsize=1,
-        arrowwidth=2,
-        arrowcolor="black",
-        xanchor="center",  # x-anchor for the arrow
-        yanchor="bottom",  # y-anchor for the arrow
-        axref="x",
-        ayref="y",
-        ax=datetime(2016, 6, 1),  # x-pos of text box
-        ay=-20                    # y-pos of text box
-    )
-)
+# fig.add_annotation(
+#     go.layout.Annotation(
+#         text="The average age of nuclear reactors<br>at the time of decommissioning has<br>significantly increased.",
+#         xref="x",
+#         yref="y",
+#         x=datetime(2017, 1, 1),  # x-pos of arrow
+#         y=-38,                   # y-pos of arrow
+#         font=dict(size=11),
+#         bordercolor="black",
+#         borderwidth=1,
+#         bgcolor="white",
+#         opacity=0.8,
+#         align="center",
+#         showarrow=True,
+#         arrowhead=2,
+#         arrowsize=1,
+#         arrowwidth=2,
+#         arrowcolor="black",
+#         xanchor="center",  # x-anchor for the arrow
+#         yanchor="bottom",  # y-anchor for the arrow
+#         axref="x",
+#         ayref="y",
+#         ax=datetime(2016, 6, 1),  # x-pos of text box
+#         ay=-20                    # y-pos of text box
+#     )
+# )
 
 # %%
 
 
-# Add rectangle
-start = datetime(2008, 7, 1)
-num_up = data.loc[data["Kommerzieller Betrieb"] >= start, :].shape[0]
-num_down = data.loc[data["Abschaltung"] >= start, :].shape[0]
+# # Add rectangle
+# start = datetime(2008, 7, 1)
+# num_up = data.loc[data["Kommerzieller Betrieb"] >= start, :].shape[0]
+# num_down = data.loc[data["Abschaltung"] >= start, :].shape[0]
 
-nums = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four"}
+# nums = {0: "zero", 1: "one", 2: "two", 3: "three", 4: "four"}
 
-msg = f"""
-Over the course of the last 15 years, the European<br>
-nuclear energy landscape underwent a significant<br>
-transformation. During these years, a mere {nums[num_up]} new<br>
-reactors commenced operation, while a striking<br>
-number of {num_down} reactors were decommissioned across<br>
-the continent. Meanwhile, the average age of<br>
-decommissioned reactors has surpassed the global<br>
-average of 27 years, with a continuing upward trend.
-"""
+# msg = f"""
+# Over the course of the last 15 years, the European<br>
+# nuclear energy landscape underwent a significant<br>
+# transformation. During these years, a mere {nums[num_up]} new<br>
+# reactors commenced operation, while a striking<br>
+# number of {num_down} reactors were decommissioned across<br>
+# the continent. Meanwhile, the average age of<br>
+# decommissioned reactors has surpassed the global<br>
+# average of 27 years, with a continuing upward trend.
+# """
 
-fig.add_vrect(
-    x0=start,
-    x1=datetime(YEAR_END, 12, 31),
-    annotation_text=msg,
-    annotation_position="top left",
-    annotation_align="left",
-    annotation={
-        "font": {"size": 10}
-        },
-    fillcolor="black",
-    opacity=0.05,
-    line_width=0
-    )
+# fig.add_vrect(
+#     x0=start,
+#     x1=datetime(YEAR_END, 12, 31),
+#     annotation_text=msg,
+#     annotation_position="top left",
+#     annotation_align="left",
+#     annotation={
+#         "font": {"size": 10}
+#         },
+#     fillcolor="black",
+#     opacity=0.05,
+#     line_width=0
+#     )
 
-fig.add_vline(
-    x=start,
-    line_width=1, line_dash="dash", line_color="black"
-    )
+# fig.add_vline(
+#     x=start,
+#     line_width=1, line_dash="dash", line_color="black"
+#     )
 
 
 
@@ -539,7 +539,7 @@ fig.update_layout(
     paper_bgcolor="rgba(0, 0, 0, 0)",
     # hovermode="x unified",
     hoverlabel=dict(font=dict(size=12)),
-    font=dict(family="Droid Serif, serif", color="black", size=12),  # global font settings
+    font=dict(family="sans-serif", color="black", size=12),  # global font settings
     width=997,
     height=580,
 
