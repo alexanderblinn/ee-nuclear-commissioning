@@ -23,21 +23,23 @@ COUNTRY_COLORS = {
     "Austria": "#FF00FF",
     "Belarus": "#0072b1",
     "Belgium": "#e6a000",
-    "Bulgaria": "#009e73",
+    "Bulgaria": "#bfef45",
     "Czech Republic": "#c4022b",
     "Finland": "#9300d3",
     "France": "#000000",
     "Germany": "#d45e00",
     "Hungary": "#FFD700",
-    "Italy": "#2e4053",
+    "Italy": "#5d5a5a",
     "Lithuania": "#FA8072",
     "Netherlands": "#9e9e00",
+    "Poland" : "#CCCCFF",
     "Romania": "#a65959",
     "Slovakia": "#36648B",
     "Slovenia": "#7DF9FF",
     "Spain": "#c0c0c0",
     "Sweden": "#2ca02c",
-    "Switzerland": "#a172de",
+    "Switzerland": "#f032e6",
+    "Turkey": "#9FE2BF",
     "Ukraine": "#800080",
     "United Kingdom": "#ff0000"
 }
@@ -115,7 +117,7 @@ data = select_data(df, YEAR_START, YEAR_END)
 data["color"] = data["Land"].map(COUNTRY_COLORS)
 
 # Calculate and scale the size of the bubbles
-data["size"] = 10 + calc_bubble_size(data["Leistung, Netto in MW"]) * 10
+data["size"] = 5 + calc_bubble_size(data["Leistung, Netto in MW"]) * 20
 
 # Create a Plotly Figure
 fig = go.Figure()
@@ -412,8 +414,8 @@ fig.add_trace(
 
 # Determine the axis limits
 x_min = datetime(YEAR_START, 1, 1)
-x_max = datetime(YEAR_END, 12, 31)
-y_min = -math.ceil(data.loc[data["Status"] == "Stillgelegt", "Betriebszeit"].max() / 10) * 10
+x_max = datetime(YEAR_END+1, 6, 1)
+y_min = -math.ceil(data.loc[data["Status"] == "Stillgelegt", "Betriebszeit"].max() / 10) * 10 - 5
 y_max = math.ceil(data.loc[data["Status"] == "In Betrieb", "Betriebszeit"].max() / 10) * 10
 
 # Apply the fixed axis ranges
