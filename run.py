@@ -38,7 +38,7 @@ COUNTRY_COLORS = {
     "Slovenia": "#7DF9FF",
     "Spain": "#c0c0c0",
     "Sweden": "#2ca02c",
-    "Switzerland": "#f032e6",
+    "Switzerland": "#c400a4",
     "Turkey": "#9FE2BF",
     "Ukraine": "#48066f",
     "United Kingdom": "#ff0000"
