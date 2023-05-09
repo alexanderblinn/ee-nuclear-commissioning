@@ -532,7 +532,7 @@ oldest_year = min(
 add_txt = f" since {YEAR_START}" if YEAR_START > oldest_year else ""
 
 fig.update_layout(
-    title=f"Evolution of Nuclear Power Plants in Europe{add_txt}:<br>Commissioning and Decommissioning of Reactors",
+    title=f"Evolution of Nuclear Power Plants in Europe{add_txt}:<br>Commissioning and Decommissioning of Nuclear Reactors by Country and Year",
     xaxis_title="Year of Commissioning or Decommissioning",
     yaxis_title="Current Operational Age or Age at Decommissioning",
     xaxis=dict(showgrid=True, gridwidth=1, gridcolor="rgba(128, 128, 128, 0.1)"),
